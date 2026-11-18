@@ -1,0 +1,15 @@
+GANATECH — Cuentas de prueba (solo para desarrollo / demostración)
+===================================================================
+
+Usuario   Contraseña     Rol           Permisos
+-------   -----------    -----------   ------------------------------------------
+kaleth    ganatech2026   Dueño         Control total (añadir, editar, eliminar, fotos)
+vet       vet2026        Veterinario   Registra salud, vacunas, pesos y fotos
+visita    visita2026     Externo       Solo lectura
+
+NOTAS
+- Estas cuentas siguen definidas en js/app.js (constante USERS), porque la app
+  no tiene servidor: sin ellas no se podría iniciar sesión.
+- No publiques esta carpeta en internet con estas claves. Cuando haya backend,
+  la validación debe hacerse en el servidor y se borra USERS del JavaScript.
+- Este archivo NO se carga desde la app; es solo una referencia para el equipo.

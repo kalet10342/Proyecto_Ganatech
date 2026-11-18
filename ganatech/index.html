@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ganatech — Finca San Juan</title>
+<link rel="icon" href="img/logo.png">
+<link rel="stylesheet" href="vendor/bootstrap.min.css">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div id="app" v-cloak>
+
+  <!-- ===== INICIO DE SESIÓN ===== -->
+  <div id="login" v-if="!me">
+    <form class="login-card" @submit.prevent="login" autocomplete="on">
+      <div class="logo-wrap"><img src="img/logo.png" alt="Ganatech"></div>
+      <h2>Iniciar sesión</h2>
+      <input class="form-control" v-model.trim="lf.u" autocomplete="username" placeholder="Usuario" aria-label="Usuario">
+      <div class="input-group mt-3">
+        <input class="form-control" :type="lf.show ? 'text' : 'password'" v-model="lf.p" autocomplete="current-password" placeholder="Contraseña" aria-label="Contraseña">
+        <button type="button" class="btn btn-outline-secondary" @click="lf.show = !lf.show" :aria-label="lf.show ? 'Ocultar contraseña' : 'Mostrar contraseña'">{{ lf.show ? '🙈' : '👁' }}</button>
+      </div>
+      <div class="err" role="alert">{{ lf.err }}</div>
+      <button class="btn btn-gt w-100 mt-2" type="submit">Ingresar</button>
+      <div class="or"><span>o continúa con</span></div>
+      <div class="d-grid gap-2">
+        <button type="button" class="btn sbtn" @click="toast('Disponible próximamente')"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.5 30.3 0 24 0 14.6 0 6.5 5.4 2.5 13.2l7.9 6.1C12.3 13.2 17.6 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.6c-.5 3-2.2 5.5-4.7 7.2l7.4 5.7C43.8 37.7 46.5 31.6 46.5 24.5z"/><path fill="#FBBC05" d="M10.4 19.3A14.5 14.5 0 0 0 9.6 24c0 1.6.3 3.2.8 4.7l-7.9 6.1A24 24 0 0 1 0 24c0-3.9.9-7.5 2.5-10.8z"/><path fill="#34A853" d="M24 48c6.3 0 11.6-2.1 15.5-5.6l-7.4-5.7c-2.1 1.4-4.8 2.2-8.1 2.2-6.4 0-11.7-3.7-13.6-9.1l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>Google</button>
+        <button type="button" class="btn sbtn" @click="toast('Disponible próximamente')"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="#1877F2" d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.25h3.32l-.53 3.49h-2.79V24C19.61 23.1 24 18.1 24 12.07z"/></svg>Facebook</button>
+      </div>
+      <div class="copy">© 2026 Ganatech. Todos los derechos reservados.</div>
+    </form>
+  </div>
+
+  <!-- ===== APLICACIÓN ===== -->
+  <div class="d-flex flex-column flex-md-row min-vh-100" v-else>
+
+    <header class="topbar d-flex d-md-none">
+      <div class="av">{{ iniciales }}</div>
+      <div class="flex-grow-1 lh-sm"><b>{{ me.n }}</b><span class="role">{{ ROLES[me.r].l }}</span></div>
+      <button class="out" @click="askOut">⎋ Salir</button>
+    </header>
+
+    <aside class="side d-none d-md-flex flex-column">
+      <div class="logo-wrap"><img src="img/logo.png" alt="Ganatech"></div>
+      <div class="farm"><b>Finca San Juan</b>Cúcuta, N. de Santander</div>
+      <button v-for="t in tabs" :key="t.v" class="sn" :class="{on: view === t.v}" @click="go(t.v)">
+        {{ t.i }} <span>{{ t.l }}</span>
+        <span v-if="t.v === 'salud' && alertas.length" class="badge rounded-pill text-bg-danger ms-auto">{{ alertas.length }}</span>
+      </button>
+      <div class="me">
+        <div class="av">{{ iniciales }}</div>
+        <div><p>{{ me.n }}</p><small>{{ ROLES[me.r].l }}</small></div>
+        <button class="out" @click="askOut">Salir</button>
+      </div>
+      <div class="foot-copy">© 2026 Ganatech<br>Todos los derechos reservados.</div>
+    </aside>
+
+    <main class="flex-grow-1">
+
+      <!-- Inicio -->
+      <section v-show="view === 'inicio'">
+        <div class="head"><div><h1>Panel de control</h1><p>Resumen de Finca San Juan</p></div></div>
+        <div class="row g-3 mb-4">
+          <div class="col-6 col-lg-3"><button class="qb w-100" @click="go('hato')"><i>🐄</i>Ver mi ganado</button></div>
+          <div class="col-6 col-lg-3" v-if="can('add')"><button class="qb w-100" @click="openForm"><i>➕</i>Añadir animal</button></div>
+          <div class="col-6 col-lg-3"><button class="qb w-100" :class="{al2: alertas.length}" @click="go('salud')"><i>🩺</i>{{ alertas.length ? alertas.length + ' con alerta' : 'Todo al día' }}</button></div>
+          <div class="col-6 col-lg-3"><button class="qb w-100" @click="go('cal')"><i>📅</i>Vacunas</button></div>
+        </div>
+        <div class="row g-3 mb-4">
+          <div class="col-6 col-lg-3" v-for="s in stats" :key="s.l"><button class="stat" @click="go(s.v)"><b>{{ s.n }}</b><span>{{ s.l }}</span></button></div>
+        </div>
+        <!-- Novedades: salud del hato y próxima vacuna -->
+        <div class="row g-3 mb-4">
+          <div class="col-md-6"><div class="box h-100">
+            <h3 class="t">Salud del hato</h3>
+            <div class="progress" role="progressbar" :aria-valuenow="pctSano" aria-valuemin="0" aria-valuemax="100"><div class="progress-bar" :style="{width: pctSano + '%'}"></div></div>
+            <small class="text-secondary d-block mt-2">{{ pctSano }}% de los animales están saludables</small>
+          </div></div>
+          <div class="col-md-6"><div class="box h-100">
+            <h3 class="t">Próxima vacuna</h3>
+            <div v-if="proxima" class="d-flex justify-content-between align-items-center gap-2" role="button" tabindex="0" @click="ver(proxima.a.id)" @keydown.enter="ver(proxima.a.id)">
+              <div><b>{{ proxima.a.nombre || proxima.a.id }}</b><small class="d-block text-secondary">{{ fd(proxima.a.prox) }}</small></div>
+              <span class="pill" :class="proxima.d < 0 ? 'p-bad' : proxima.d <= 14 ? 'p-warn' : 'p-ok'">{{ rel(proxima.d) }}</span>
+            </div>
+            <small v-else class="text-secondary">Sin vacunas programadas.</small>
+          </div></div>
+        </div>
+        <h3 class="t">Resumen de ganado</h3>
+        <div class="d-flex flex-column gap-2">
+          <div class="item" v-for="a in recientes" :key="a.id" role="button" tabindex="0" @click="ver(a.id)" @keydown.enter="ver(a.id)">
+            <avatar :a="a"></avatar>
+            <div class="i"><b>{{ a.nombre ? a.nombre + ' · ' : '' }}ID #{{ a.id }} — {{ a.raza }}</b><div>{{ a.sexo }}, {{ a.edad }} {{ a.edad == 1 ? 'año' : 'años' }}, {{ a.peso }} kg<template v-if="a.fotos.length"> · 📷{{ a.fotos.length }}</template></div></div>
+            <span class="pill" :class="pc(a.estado)">{{ a.estado }}</span>
+          </div>
+          <div class="empty" v-if="!hato.length">Aún no tienes animales.<template v-if="can('add')"> Toca “Añadir animal” para registrar el primero.</template></div>
+        </div>
+      </section>
+
+      <!-- Mi ganado -->
+      <section v-show="view === 'hato'">
+        <div class="head"><div><h1>Mi ganado</h1><p>{{ hato.length }} animales registrados en Finca San Juan</p></div>
+          <button class="btn btn-gt" v-if="can('add')" @click="openForm">＋ Añadir ganado</button></div>
+        <div class="d-flex flex-column flex-md-row gap-2 mb-3">
+          <input class="form-control" v-model="q" placeholder="🔍 Buscar por nombre, ID o raza…" aria-label="Buscar">
+          <select class="form-select w-auto" v-model="fs" aria-label="Filtrar por estado"><option value="">Todos</option><option>Saludable</option><option>Chequeo pendiente</option><option>Vacuna próxima</option></select>
+        </div>
+        <div class="row g-3">
+          <div class="col-12 col-md-6 col-xl-4" v-for="a in filtrados" :key="a.id">
+            <div class="gc h-100" role="button" tabindex="0" @click="ver(a.id)" @keydown.enter="ver(a.id)">
+              <div class="d-flex gap-3 align-items-center"><avatar :a="a" :size="64"></avatar>
+                <div class="min-w-0"><b>{{ a.nombre || a.id }}</b><small class="d-block">{{ a.nombre ? a.id + ' · ' : '' }}{{ a.raza }}</small></div></div>
+              <div class="mt-2"><span class="pill" :class="pc(a.estado)">{{ a.estado }}</span></div>
+              <small><span>{{ a.sexo }} · {{ a.edad }} a.</span><span><template v-if="a.fotos.length">📷{{ a.fotos.length }} · </template>{{ a.peso }} kg</span></small>
+            </div>
+          </div>
+          <div class="col-12" v-if="!filtrados.length"><div class="empty">No hay animales que coincidan.</div></div>
+        </div>
+      </section>
+
+      <!-- Calendario -->
+      <section v-show="view === 'cal'">
+        <div class="head"><div><h1>Calendario de vacunación</h1><p>Próximas dosis, ordenadas por fecha</p></div></div>
+        <div class="d-flex flex-column gap-2">
+          <div class="item" v-for="a in calendario" :key="a.id" role="button" tabindex="0" @click="ver(a.id)" @keydown.enter="ver(a.id)">
+            <div class="ic cal"><span>{{ a.prox.slice(8) }}</span>{{ MESES[+a.prox.slice(5, 7) - 1] }}</div>
+            <div class="i"><b>{{ a.nombre || a.id }} — Próxima vacuna</b><div>{{ a.raza }} · {{ a.sexo }} · {{ a.prox.slice(0, 4) }}</div></div>
+            <span class="pill p-bad" v-if="a.prox < hoy">Vencida</span>
+          </div>
+          <div class="empty" v-if="!calendario.length">Sin vacunas programadas.</div>
+        </div>
+      </section>
+
+      <!-- Salud -->
+      <section v-show="view === 'salud'">
+        <div class="head"><div><h1>Control sanitario</h1><p>{{ alertas.length ? alertas.length + ' animal(es) requieren atención' : 'Todo el ganado está al día' }}</p></div></div>
+        <div class="al" v-for="a in alertas" :key="a.id" role="button" tabindex="0" @click="ver(a.id)" @keydown.enter="ver(a.id)">
+          <div class="fs-4">⚠️</div>
+          <div><b>{{ a.nombre ? a.nombre + ' (' + a.id + ')' : a.id }} · {{ a.raza }} — {{ a.estado }}</b>
+            <div class="text-secondary mt-1" style="font-size:12.5px">Próxima dosis: {{ fd(a.prox) }}. Toca para ver la ficha.</div></div>
+        </div>
+        <div class="al ok"><div class="fs-4">✅</div><div><b>{{ hato.length - alertas.length }} de {{ hato.length }} animales al día</b></div></div>
+      </section>
+
+      <!-- Perfil -->
+      <section v-show="view === 'perfil'">
+        <div class="head"><div><h1>Perfil</h1></div></div>
+        <div class="gc" style="max-width:460px;cursor:default">
+          <div class="me border-0 p-0"><div class="av" style="width:56px;height:56px;font-size:19px">{{ iniciales }}</div>
+            <div><p style="font-size:17px">{{ me.n }}</p><small>{{ ROLES[me.r].l }} · Finca San Juan</small></div></div>
+          <div class="hi mt-3"><span>Rol</span><span>{{ ROLES[me.r].l }}</span></div>
+          <div class="hi"><span>Finca</span><span>San Juan</span></div>
+          <div class="hi"><span>Ubicación</span><span>Cúcuta, Norte de Santander</span></div>
+          <div class="hi"><span>Animales</span><span>{{ hato.length }} cabezas</span></div>
+          <div class="ro" style="background:var(--gp);color:var(--gd)">{{ ROLES[me.r].d }}</div>
+          <button class="btn btn-outline-gt w-100 mt-3" v-if="can('reset')" @click="askReset">Restaurar datos de ejemplo</button>
+          <button class="btn btn-outline-danger w-100 mt-2" @click="askOut">⎋ Cerrar sesión</button>
+        </div>
+      </section>
+
+      <div class="foot-copy d-md-none pt-4">© 2026 Ganatech<br>Todos los derechos reservados.</div>
+    </main>
+
+    <nav class="tabbar d-grid d-md-none" style="grid-template-columns:repeat(5,1fr)">
+      <button v-for="t in tabs" :key="t.v" class="tab" :class="{on: view === t.v}" @click="go(t.v)"><i>{{ t.i }}</i>{{ t.s }}
+        <span v-if="t.v === 'salud' && alertas.length" class="badge rounded-pill text-bg-danger">{{ alertas.length }}</span></button>
+    </nav>
+  </div>
+
+  <!-- ===== MODAL (Bootstrap) ===== -->
+  <div class="modal d-block" v-if="modal" tabindex="-1" role="dialog" aria-modal="true" @click.self="closeM">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable"><div class="modal-content"><div class="modal-body">
+      <button class="x" @click="closeM" aria-label="Cerrar">✕</button>
+
+      <!-- Confirmación -->
+      <template v-if="modal === 'confirm'">
+        <h2>{{ conf.t }}</h2>
+        <p class="text-secondary my-3" v-html="conf.p"></p>
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-gt flex-fill" @click="conf.back ? ver(conf.back) : closeM()">Cancelar</button>
+          <button class="btn btn-danger flex-fill" @click="conf.yes()">{{ conf.ok }}</button>
+        </div>
+      </template>
+
+      <!-- Añadir animal -->
+      <form v-else-if="modal === 'form'" @submit.prevent="addAnimal">
+        <h2>Añadir ganado</h2><p class="text-secondary mb-1">Completa los datos del nuevo animal.</p>
+        <label class="form-label">Fotos (puedes elegir varias)</label>
+        <label class="btn btn-outline-gt w-100 mb-0">📷 Elegir fotos<input type="file" accept="image/*" multiple hidden @change="nf.files = [...$event.target.files]"></label>
+        <div class="fc">{{ nf.files.length ? '✓ ' + nf.files.length + ' foto(s) elegida(s)' : '' }}</div>
+        <label class="form-label">Nombre del animal</label><input class="form-control" v-model.trim="nf.nom" placeholder="Ej: Lucero">
+        <label class="form-label">ID / arete</label><input class="form-control" v-model="nf.id" required>
+        <div class="row g-2">
+          <div class="col-6"><label class="form-label">Raza</label><select class="form-select" v-model="nf.raza"><option v-for="r in RAZAS">{{ r }}</option></select></div>
+          <div class="col-6"><label class="form-label">Sexo</label><select class="form-select" v-model="nf.sexo"><option>Hembra</option><option>Macho</option></select></div>
+          <div class="col-6"><label class="form-label">Edad (años)</label><input class="form-control" type="number" inputmode="decimal" min="0" max="30" step="0.5" v-model.number="nf.edad" required></div>
+          <div class="col-6"><label class="form-label">Peso (kg)</label><input class="form-control" type="number" inputmode="numeric" min="20" max="1500" placeholder="450" v-model.number="nf.peso" required></div>
+        </div>
+        <details><summary>＋ Más datos (salud y vacunas)</summary>
+          <label class="form-label">Estado de salud</label><select class="form-select" v-model="nf.est"><option>Saludable</option><option>Chequeo pendiente</option><option>Vacuna próxima</option></select>
+          <div class="row g-2"><div class="col-6"><label class="form-label">Última vacuna</label><input class="form-control" type="date" v-model="nf.vac"></div>
+            <div class="col-6"><label class="form-label">Próxima vacuna</label><input class="form-control" type="date" v-model="nf.prox"></div></div>
+          <small class="text-secondary">Si dejas la próxima vacuna vacía, se calcula a 6 meses de la última.</small>
+        </details>
+        <div class="err">{{ ferr }}</div>
+        <button class="btn btn-gt w-100" :disabled="busy">✔ Guardar animal</button>
+      </form>
+
+      <!-- Ficha del animal -->
+      <template v-else-if="modal === 'detail' && cur">
+        <div class="d-flex gap-3 align-items-center pe-5"><avatar :a="cur" :size="72"></avatar>
+          <div><h2 class="mb-0">{{ cur.nombre || 'ID #' + cur.id }}</h2><p class="text-secondary mb-0 mt-1" style="font-size:13px">ID #{{ cur.id }} · {{ cur.raza }} · {{ cur.sexo }} · {{ cur.edad }} años</p></div></div>
+        <div class="ro" v-if="!can('add') && !can('est')">👁 Solo lectura: puedes ver la ficha pero no modificarla.</div>
+        <div class="my-3">
+          <template v-if="cur.fotos.length">
+            <div class="gmain" @click="openLb(0)"><img :src="cur.fotos[0]" alt="Foto principal"><span class="gn">📷 {{ cur.fotos.length }} · tocar para ampliar</span></div>
+            <div class="gth" v-if="cur.fotos.length > 1"><img v-for="(x, i) in cur.fotos" :key="i" :src="x" :alt="'Foto ' + (i + 1)" @click="openLb(i)"></div>
+          </template>
+          <div class="gnone" v-else>📷 Sin fotos todavía</div>
+          <label class="btn btn-outline-gt w-100 mt-2" v-if="can('fotos')">📷 Añadir fotos<input type="file" accept="image/*" multiple hidden @change="addFotos($event.target.files)"></label>
+        </div>
+        <div class="input-group" v-if="can('nom')"><input class="form-control" v-model="nn" placeholder="Nombre" aria-label="Nombre"><button class="btn btn-outline-gt" @click="setNom">Guardar nombre</button></div>
+        <div class="row g-2"><div class="col-6"><div class="kv"><small>Peso actual</small><b>{{ cur.peso }} kg</b></div></div>
+          <div class="col-6"><div class="kv"><small>Estado</small><b style="font-size:13px">{{ cur.estado }}</b></div></div></div>
+        <h4 class="sec">Vacunación</h4>
+        <div class="hi"><span>Última</span><span>{{ fd(cur.vac) }}</span></div><div class="hi"><span>Próxima</span><span>{{ fd(cur.prox) }}</span></div>
+        <div class="input-group mt-2" v-if="can('vac')"><input class="form-control" type="date" v-model="nv" aria-label="Fecha de vacuna"><button class="btn btn-outline-gt" @click="addVac">Registrar vacuna</button></div>
+        <h4 class="sec">Historial de peso</h4>
+        <div class="hi" v-for="(p, i) in [...cur.pesos].reverse()" :key="i"><span>{{ fd(p[0]) }}</span><span>{{ p[1] }} kg</span></div>
+        <div class="input-group mt-2" v-if="can('peso')"><input class="form-control" type="number" inputmode="numeric" v-model.number="np" placeholder="Nuevo peso (kg)" aria-label="Nuevo peso"><button class="btn btn-outline-gt" @click="addPeso">Registrar peso</button></div>
+        <template v-if="can('est')"><h4 class="sec">Cambiar estado</h4>
+          <select class="form-select" :value="cur.estado" @change="setEst($event.target.value)" aria-label="Estado"><option>Saludable</option><option>Chequeo pendiente</option><option>Vacuna próxima</option></select></template>
+        <button class="btn btn-outline-danger w-100 mt-4" v-if="can('del')" @click="askDel">Eliminar animal</button>
+      </template>
+    </div></div></div>
+  </div>
+
+  <!-- ===== VISOR DE FOTOS ===== -->
+  <div class="lb" v-if="lb" @touchstart.passive="sx = $event.touches[0].clientX" @touchend="swipe">
+    <div class="lbc">{{ lb.i + 1 }} / {{ lbFotos.length }}</div>
+    <button class="lbx" @click="closeLb" aria-label="Cerrar">✕</button>
+    <button class="lba l" v-if="lbFotos.length > 1" @click="lbGo(-1)" aria-label="Anterior">‹</button>
+    <img :src="lbFotos[lb.i]" alt="Foto del animal">
+    <button class="lba r" v-if="lbFotos.length > 1" @click="lbGo(1)" aria-label="Siguiente">›</button>
+    <button class="btn btn-danger lbd" v-if="can('delfoto')" @click="lbDel">{{ lbArm ? '¿Seguro? Toca otra vez' : '🗑 Quitar esta foto' }}</button>
+  </div>
+
+  <div class="wel" :class="{on: welOn}" role="status"><span>👋</span><div><b>¡Bienvenido, {{ me && me.n.split(' ')[0] }}!</b><small>Sesión como {{ me && ROLES[me.r].l }}</small></div></div>
+  <div class="gt-toast" :class="{on: toastOn}" role="status">{{ toastMsg }}</div>
+</div>
+
+<script src="vendor/vue.global.prod.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
